@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Administrativo - Açaíteria</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffd700;
+    }
+    .section {
+      background: #333;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    input, button {
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      font-size: 14px;
+    }
+    button {
+      background: #ffd700;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e6c200;
+    }
+    label {
+      display: block;
+      margin: 8px 0;
+    }
+    /* Tela de login */
+    #loginArea {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #painel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginArea">
+    <h1>🔒 Login Administrativo</h1>
+    <input type="password" id="senhaInput" placeholder="Digite a senha">
+    <button onclick="fazerLogin()">Entrar</button>
+  </div>
+
+  <!-- PAINEL ADMIN -->
+  <div id="painel">
+    <h1>⚙️ Painel Administrativo</h1>
+
+    <!-- Alterações Gerais -->
+    <div class="section">
+      <h2>Configurações da Loja</h2>
+      <label>Nome da Loja: <input type="text" id="nomeLoja"></label>
+      <label>Cor de Fundo: <input type="color" id="corFundo"></label>
+      <label>Logo (URL): <input type="text" id="logoUrl" placeholder="URL da imagem"></label>
+    </div>
+
+    <!-- Vitamina -->
+    <div class="section">
+      <h2>Vitamina</h2>
+      <label><input type="checkbox" id="vitaminaAtiva"> Ativar Vitamina</label>
+      <input type="text" id="vitaminaNome" placeholder="Nome da Vitamina">
+      <input type="text" id="vitaminaPreco" placeholder="Preço">
+    </div>
+
+    <!-- Tamanhos -->
+    <div class="section">
+      <h2>Tamanhos</h2>
+      <div id="listaTamanhos"></div>
+      <input type="text" id="novoTamanho" placeholder="Novo Tamanho (ex: 500 ML - R$ 19,99)">
+      <button onclick="adicionarOpcao('tamanhos')">Adicionar Tamanho</button>
+    </div>
+
+    <!-- Cremes -->
+    <div class="section">
+      <h2>Cremes</h2>
+      <div id="listaCremes"></div>
+      <input type="text" id="novoCreme" placeholder="Novo Creme">
+      <button onclick="adicionarOpcao('cremes')">Adicionar Creme</button>
+    </div>
+
+    <!-- Adicionais -->
+    <div class="section">
+      <h2>Adicionais</h2>
+      <div id="listaAdicionais"></div>
+      <input type="text" id="novoAdicional" placeholder="Novo Adicional">
+      <button onclick="adicionarOpcao('adicionais')">Adicionar Adicional</button>
+    </div>
+
+    <!-- Alterar Senha -->
+    <div class="section">
+      <h2>🔑 Alterar Senha</h2>
+      <input type="password" id="senhaAtual" placeholder="Senha Atual">
+      <input type="password" id="novaSenha" placeholder="Nova Senha">
+      <button onclick="alterarSenha()">Alterar Senha</button>
+    </div>
+
+    <button onclick="salvarDados()">💾 Salvar Alterações</button>
+  </div>
+
+  <script>
+    // Senha padrão inicial
+    let senhaCorreta = localStorage.getItem("senhaAdmin") || "1234";
+
+    function fazerLogin() {
+      const senha = document.getElementById("senhaInput").value;
+      if (senha === senhaCorreta) {
+        document.getElementById("loginArea").style.display = "none";
+        document.getElementById("painel").style.display = "block";
+        carregarPainel();
+      } else {
+        alert("❌ Senha incorreta!");
+      }
+    }
+
+    function alterarSenha() {
+      const senhaAtual = document.getElementById("senhaAtual").value;
+      const novaSenha = document.getElementById("novaSenha").value;
+
+      if (senhaAtual !== senhaCorreta) {
+        alert("❌ Senha atual incorreta!");
+        return;
+      }
+
+      if (novaSenha.trim().length < 4) {
+        alert("⚠️ A nova senha deve ter pelo menos 4 caracteres.");
+        return;
+      }
+
+      localStorage.setItem("senhaAdmin", novaSenha);
+      senhaCorreta = novaSenha;
+      alert("✅ Senha alterada com sucesso!");
+      document.getElementById("senhaAtual").value = "";
+      document.getElementById("novaSenha").value = "";
+    }
+
+    // Estrutura inicial do cardápio
+    let dados = JSON.parse(localStorage.getItem("cardapio")) || {
+      loja: { nome: "ENCHA O BUXO AÇAITERIA", cor: "#6a0dad", logo: "logo.png" },
+      vitamina: { ativa: true, nome: "Vitamina de Açaí 300 ML", preco: "R$ 14,99" },
+      tamanhos: ["200 ML - R$ 8,99", "300 ML - R$ 12,99", "400 ML - R$ 16,99"],
+      cremes: ["Creme de Ovomaltine", "Creme de Ninho"],
+      adicionais: ["M&M", "Chocobol", "Gotas de Chocolate", "Castanha", "Paçoquita", "Leite em Pó", "Banana"]
+    };
+
+    // Mostrar opções para edição
+    function carregarPainel() {
+      document.getElementById("nomeLoja").value = dados.loja.nome;
+      document.getElementById("corFundo").value = dados.loja.cor;
+      document.getElementById("logoUrl").value = dados.loja.logo;
+
+      document.getElementById("vitaminaAtiva").checked = dados.vitamina.ativa;
+      document.getElementById("vitaminaNome").value = dados.vitamina.nome;
+      document.getElementById("vitaminaPreco").value = dados.vitamina.preco;
+
+      listarOpcoes("tamanhos", "listaTamanhos");
+      listarOpcoes("cremes", "listaCremes");
+      listarOpcoes("adicionais", "listaAdicionais");
+    }
+
+    function listarOpcoes(tipo, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      dados[tipo].forEach((item, index) => {
+        container.innerHTML += `
+          <label>
+            <input type="checkbox" checked onchange="toggleOpcao('${tipo}', ${index}, this.checked)">
+            <input type="text" value="${item}" onchange="editarOpcao('${tipo}', ${index}, this.value)">
+          </label>`;
+      });
+    }
+
+    function editarOpcao(tipo, index, novoValor) {
+      dados[tipo][index] = novoValor;
+    }
+
+    function toggleOpcao(tipo, index, ativo) {
+      if (!ativo) dados[tipo].splice(index, 1);
+      carregarPainel();
+    }
+
+    function adicionarOpcao(tipo) {
+      const inputId = tipo === "tamanhos" ? "novoTamanho" : tipo === "cremes" ? "novoCreme" : "novoAdicional";
+      const valor = document.getElementById(inputId).value.trim();
+      if (valor) {
+        dados[tipo].push(valor);
+        document.getElementById(inputId).value = "";
+        carregarPainel();
+      }
+    }
+
+    function salvarDados() {
+      dados.loja.nome = document.getElementById("nomeLoja").value;
+      dados.loja.cor = document.getElementById("corFundo").value;
+      dados.loja.logo = document.getElementById("logoUrl").value;
+
+      dados.vitamina.ativa = document.getElementById("vitaminaAtiva").checked;
+      dados.vitamina.nome = document.getElementById("vitaminaNome").value;
+      dados.vitamina.preco = document.getElementById("vitaminaPreco").value;
+
+      localStorage.setItem("cardapio", JSON.stringify(dados));
+      alert("✅ Dados salvos com sucesso!");
+    }
+  </script>
+</body>
+</html>
