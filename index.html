@@ -1,0 +1,755 @@
+<!DOCTYPE html><html lang="pt-br"><head>  <meta charset="UTF-8">  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Cardápio de Açaí</title>  <style>
+  
+    body { font-family: Arial, sans-serif; background: #5a189a; color: white; margin: 0; padding: 20px; }
+  
+    .container { max-width: 600px; margin: auto; background: #7b2cbf; padding: 20px; border-radius: 15px; }
+  
+    .logo { text-align: center; margin-bottom: 20px; }
+  
+    .logo img { max-width: 200px; border-radius: 10px; }
+  
+    h3 { margin-top: 20px; }
+  
+    button, input { cursor: pointer; margin: 5px 0; }
+  
+    .option { display: inline-block; margin: 5px; padding: 10px; border-radius: 8px; background: #9d4edd; border: none; color: white; }
+  
+    .selected { background: #ffb703; color: black; font-weight: bold; }
+  
+    .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background: #38b000; border: none; border-radius: 10px; color: white; font-size: 18px; font-weight: bold; }
+  
+    .admin { background: #240046; padding: 15px; border-radius: 10px; margin-top: 20px; }
+  
+    .hidden { display: none; }
+  
+    .list-item { display: flex; flex-direction: column; background: #9d4edd; padding: 10px; margin: 5px 0; border-radius: 5px; }
+  
+    .list-item input { margin: 3px 0; }
+  
+    .list-item button { background: red; border: none; color: white; padding: 5px; border-radius: 5px; font-size: 12px; cursor: pointer; margin-top: 5px; }
+  
+  </style></head><body><div class="container">  <!-- LOGO -->  <div class="logo"><img src="logo.png" alt="Logo"></div>  <!-- Cliente -->  <div id="cliente"><input id="nome" type="text" placeholder="Digite seu nome" style="width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;">
+
+<input id="endereco" type="text" placeholder="Digite seu endereço" style="width:100%;padding:10px;margin-bottom:20px;border-radius:8px;border:none;">
+
+
+
+<div id="vitaminaOpcao"></div>
+
+
+
+<h3>Tamanhos dos Copos</h3>
+
+<div id="tamanhos"></div>
+
+
+
+<h3>Cremes</h3>
+
+<div id="cremes"></div>
+
+
+
+<h3>Adicionais</h3>
+
+<div id="adicionais"></div>
+
+
+
+<h3>Coberturas</h3>
+
+<div id="coberturas"></div>
+
+
+
+<div id="novasCategorias"></div>
+
+
+
+<button class="btn" onclick="enviarPedido()">📲 Enviar Pedido no WhatsApp</button>
+
+  </div>  <!-- Botão admin --><button class="btn" style="background:#ff6d00;" onclick="abrirAdmin()">🔑 Entrar como Admin</button>
+
+  <!-- Painel Admin -->  <div id="painelAdmin" class="admin hidden"><h2>Painel Administrativo</h2>
+
+<input type="password" id="senhaAdmin" placeholder="Digite a senha">
+
+<button onclick="loginAdmin()">Entrar</button>
+
+
+
+<div id="conteudoAdmin" class="hidden">
+
+
+
+  <h3>Gerenciar Vitamina de Açaí</h3>
+
+  <div id="listaVitamina"></div>
+
+
+
+  <h3>Gerenciar Tamanhos dos Copos</h3>
+
+  <label>Limite: <input type="number" id="limiteTamanhos" value="1" onchange="limites.tamanhos = parseInt(this.value)||1"></label>
+
+  <div id="listaTamanhos"></div>
+
+  <input id="novoTamanho" placeholder="Novo tamanho (ex: 500ML)">
+
+  <input id="precoTamanho" placeholder="Preço">
+
+  <button onclick="adicionarTamanho()">Adicionar</button>
+
+
+
+  <h3>Gerenciar Cremes</h3>
+
+  <label>Limite: <input type="number" id="limiteCremes" value="1" onchange="limites.cremes = parseInt(this.value)||1"></label>
+
+  <div id="listaCremes"></div>
+
+  <input id="novoCreme" placeholder="Novo creme">
+
+  <button onclick="adicionarCreme()">Adicionar</button>
+
+
+
+  <h3>Gerenciar Adicionais</h3>
+
+  <label>Limite: <input type="number" id="limiteAdicionais" value="4" onchange="limites.adicionais = parseInt(this.value)||1"></label>
+
+  <div id="listaAdicionais"></div>
+
+  <input id="novoAdicional" placeholder="Novo adicional">
+
+  <button onclick="adicionarAdicional()">Adicionar</button>
+
+
+
+  <h3>Gerenciar Coberturas</h3>
+
+  <label>Limite: <input type="number" id="limiteCoberturas" value="1" onchange="limites.coberturas = parseInt(this.value)||1"></label>
+
+  <div id="listaCoberturas"></div>
+
+  <input id="novaCobertura" placeholder="Nova cobertura">
+
+  <button onclick="adicionarCobertura()">Adicionar</button>
+
+
+
+  <h3>Gerenciar Novas Categorias</h3>
+
+  <div id="listaCategorias"></div>
+
+  <input id="novaCategoria" placeholder="Nome da nova categoria">
+
+  <input id="limiteCategoria" type="number" placeholder="Limite de escolhas" value="1">
+
+  <button onclick="adicionarCategoria()">Adicionar Categoria</button>
+
+</div>
+
+  </div></div><script>
+  
+  // Limites configuráveis
+  
+  let limites = { tamanhos: 1, cremes: 1, adicionais: 4, coberturas: 1 };
+  
+
+  
+  // Dados iniciais
+  
+  let vitamina = { label: "Vitamina de Açaí (300ML - R$ 12,99)", ativo: true };
+  
+
+  
+  let tamanhos = [
+  
+    { label: "200 ML", preco: "8,99", ativo: true },
+  
+    { label: "300 ML", preco: "12,99", ativo: true },
+  
+    { label: "400 ML", preco: "16,99", ativo: true }
+  
+  ];
+  
+  let cremes = [
+  
+    { label: "Creme de Ovomaltine", ativo: true },
+  
+    { label: "Creme de Ninho", ativo: true }
+  
+  ];
+  
+  let adicionais = [
+  
+    { label: "M&M", ativo: true },
+  
+    { label: "Chocobol", ativo: true },
+  
+    { label: "Paçoquita", ativo: true },
+  
+    { label: "Gotas de Chocolate", ativo: true },
+  
+    { label: "Castanha", ativo: true },
+  
+    { label: "Banana", ativo: true },
+  
+    { label: "Leite em Pó", ativo: true }
+  
+  ];
+  
+  let coberturas = [
+  
+    { label: "Cobertura de Chocolate", ativo: true }
+  
+  ];
+  
+  let categorias = [];
+  
+
+  
+  let selecionados = { tamanhos: [], cremes: [], adicionais: [], coberturas: [] };
+  
+  let categoriasSelecionadas = {};
+  
+
+  
+  // Renderizar cardápio
+  
+  function renderCardapio() {
+  
+    // Vitamina
+  
+    const divVit = document.getElementById("vitaminaOpcao");
+  
+    divVit.innerHTML = "";
+  
+    if (vitamina.ativo) {
+  
+      divVit.innerHTML = `<label><input type="checkbox" id="vitamina"> ${vitamina.label}</label>`;
+  
+    }
+  
+
+  
+    renderGrupo("tamanhos", tamanhos, "tamanhos");
+  
+    renderGrupo("cremes", cremes, "cremes");
+  
+    renderGrupo("adicionais", adicionais, "adicionais");
+  
+    renderGrupo("coberturas", coberturas, "coberturas");
+  
+
+  
+    const divCategorias = document.getElementById("novasCategorias");
+  
+    divCategorias.innerHTML = "";
+  
+    categorias.forEach(cat => {
+  
+      if (!cat.ativo) return;
+  
+      const h = document.createElement("h3");
+  
+      h.innerText = cat.nome;
+  
+      divCategorias.appendChild(h);
+  
+
+  
+      const div = document.createElement("div");
+  
+      divCategorias.appendChild(div);
+  
+
+  
+      if (!categoriasSelecionadas[cat.nome]) categoriasSelecionadas[cat.nome] = [];
+  
+      cat.produtos.filter(p => p.ativo).forEach(prod => {
+  
+        const btn = document.createElement("button");
+  
+        btn.innerText = prod.label;
+  
+        btn.className = "option";
+  
+        btn.onclick = () => {
+  
+          let lista = categoriasSelecionadas[cat.nome];
+  
+          if (lista.includes(prod.label)) {
+  
+            lista.splice(lista.indexOf(prod.label), 1);
+  
+            btn.classList.remove("selected");
+  
+          } else {
+  
+            if (lista.length < cat.limite) {
+  
+              lista.push(prod.label);
+  
+              btn.classList.add("selected");
+  
+            } else {
+  
+              alert(`Você só pode escolher até ${cat.limite} opções em ${cat.nome}`);
+  
+            }
+  
+          }
+  
+        };
+  
+        div.appendChild(btn);
+  
+      });
+  
+    });
+  
+  }
+  
+
+  
+  function renderGrupo(id, lista, tipo) {
+  
+    const div = document.getElementById(id);
+  
+    div.innerHTML = "";
+  
+    lista.filter(i => i.ativo).forEach(i => {
+  
+      const btn = document.createElement("button");
+  
+      btn.innerText = i.preco ? `${i.label} - R$ ${i.preco}` : i.label;
+  
+      btn.className = "option";
+  
+      btn.onclick = () => toggleSelecao(tipo, i.label, btn);
+  
+      div.appendChild(btn);
+  
+    });
+  
+  }
+  
+
+  
+  function toggleSelecao(tipo, valor, btn) {
+  
+    let lista = selecionados[tipo];
+  
+    if (lista.includes(valor)) {
+  
+      lista.splice(lista.indexOf(valor), 1);
+  
+      btn.classList.remove("selected");
+  
+    } else {
+  
+      if (lista.length < limites[tipo]) {
+  
+        lista.push(valor);
+  
+        btn.classList.add("selected");
+  
+      } else {
+  
+        alert(`Você só pode escolher até ${limites[tipo]} ${tipo}!`);
+  
+      }
+  
+    }
+  
+  }
+  
+
+  
+  // Admin
+  
+  function abrirAdmin() { document.getElementById("painelAdmin").classList.remove("hidden"); }
+  
+  function loginAdmin() {
+  
+    const senha = document.getElementById("senhaAdmin").value;
+  
+    if (senha === "ana1234") document.getElementById("conteudoAdmin").classList.remove("hidden");
+  
+    else alert("Senha incorreta!");
+  
+  }
+  
+
+  
+  function renderAdmin() {
+  
+    renderVitamina();
+  
+    renderLista("listaTamanhos", tamanhos, true);
+  
+    renderLista("listaCremes", cremes, false);
+  
+    renderLista("listaAdicionais", adicionais, false);
+  
+    renderLista("listaCoberturas", coberturas, false);
+  
+    renderCategorias();
+  
+  }
+  
+
+  
+  function renderVitamina() {
+  
+    const div = document.getElementById("listaVitamina");
+  
+    div.innerHTML = "";
+  
+    const li = document.createElement("div");
+  
+    li.className = "list-item";
+  
+
+  
+    const inputNome = document.createElement("input");
+  
+    inputNome.value = vitamina.label;
+  
+    inputNome.onchange = () => { vitamina.label = inputNome.value; renderTudo(); };
+  
+    li.appendChild(inputNome);
+  
+
+  
+    const btnToggle = document.createElement("button");
+  
+    btnToggle.innerText = "Ativar/Desativar";
+  
+    btnToggle.onclick = () => { vitamina.ativo = !vitamina.ativo; renderTudo(); };
+  
+    li.appendChild(btnToggle);
+  
+
+  
+    div.appendChild(li);
+  
+  }
+  
+
+  
+  function renderLista(divId, lista, temPreco) {
+  
+    const div = document.getElementById(divId);
+  
+    div.innerHTML = "";
+  
+    lista.forEach((item,i) => {
+  
+      const li = document.createElement("div");
+  
+      li.className = "list-item";
+  
+
+  
+      const inputNome = document.createElement("input");
+  
+      inputNome.value = item.label;
+  
+      inputNome.onchange = () => { item.label = inputNome.value; renderTudo(); };
+  
+      li.appendChild(inputNome);
+  
+
+  
+      if (temPreco) {
+  
+        const inputPreco = document.createElement("input");
+  
+        inputPreco.value = item.preco;
+  
+        inputPreco.onchange = () => { item.preco = inputPreco.value; renderTudo(); };
+  
+        li.appendChild(inputPreco);
+  
+      }
+  
+
+  
+      const btnToggle = document.createElement("button");
+  
+      btnToggle.innerText = "Ativar/Desativar";
+  
+      btnToggle.onclick = () => { item.ativo = !item.ativo; renderTudo(); };
+  
+
+  
+      const btnRemove = document.createElement("button");
+  
+      btnRemove.innerText = "Remover";
+  
+      btnRemove.onclick = () => { lista.splice(i,1); renderTudo(); };
+  
+
+  
+      li.appendChild(btnToggle);
+  
+      li.appendChild(btnRemove);
+  
+      div.appendChild(li);
+  
+    });
+  
+  }
+  
+
+  
+  function renderCategorias() {
+  
+    const div = document.getElementById("listaCategorias");
+  
+    div.innerHTML = "";
+  
+    categorias.forEach((cat,i) => {
+  
+      const li = document.createElement("div");
+  
+      li.className = "list-item";
+  
+
+  
+      const inputNome = document.createElement("input");
+  
+      inputNome.value = cat.nome;
+  
+      inputNome.onchange = () => { cat.nome = inputNome.value; renderTudo(); };
+  
+      li.appendChild(inputNome);
+  
+
+  
+      const inputLimite = document.createElement("input");
+  
+      inputLimite.type = "number";
+  
+      inputLimite.value = cat.limite;
+  
+      inputLimite.onchange = () => { cat.limite = parseInt(inputLimite.value)||1; renderTudo(); };
+  
+      li.appendChild(inputLimite);
+  
+
+  
+      const btnToggle = document.createElement("button");
+  
+      btnToggle.innerText = "Ativar/Desativar";
+  
+      btnToggle.onclick = () => { cat.ativo = !cat.ativo; renderTudo(); };
+  
+      li.appendChild(btnToggle);
+  
+
+  
+      const btnRemove = document.createElement("button");
+  
+      btnRemove.innerText = "Remover Categoria";
+  
+      btnRemove.onclick = () => { categorias.splice(i,1); renderTudo(); };
+  
+      li.appendChild(btnRemove);
+  
+
+  
+      const divProdutos = document.createElement("div");
+  
+      cat.produtos.forEach((prod,j) => {
+  
+        const prodDiv = document.createElement("div");
+  
+        prodDiv.className = "list-item";
+  
+
+  
+        const inputProd = document.createElement("input");
+  
+        inputProd.value = prod.label;
+  
+        inputProd.onchange = () => { prod.label = inputProd.value; renderTudo(); };
+  
+        prodDiv.appendChild(inputProd);
+  
+
+  
+        const btnToggleP = document.createElement("button");
+  
+        btnToggleP.innerText = "Ativar/Desativar";
+  
+        btnToggleP.onclick = () => { prod.ativo = !prod.ativo; renderTudo(); };
+  
+        prodDiv.appendChild(btnToggleP);
+  
+
+  
+        const btnRemoveP = document.createElement("button");
+  
+        btnRemoveP.innerText = "Remover Produto";
+  
+        btnRemoveP.onclick = () => { cat.produtos.splice(j,1); renderTudo(); };
+  
+        prodDiv.appendChild(btnRemoveP);
+  
+
+  
+        divProdutos.appendChild(prodDiv);
+  
+      });
+  
+
+  
+      const inputNovoProd = document.createElement("input");
+  
+      inputNovoProd.placeholder = "Novo produto";
+  
+      const btnAddProd = document.createElement("button");
+  
+      btnAddProd.innerText = "Adicionar Produto";
+  
+      btnAddProd.onclick = () => {
+  
+        if(inputNovoProd.value) cat.produtos.push({label: inputNovoProd.value, ativo:true});
+  
+        renderTudo();
+  
+      };
+  
+      divProdutos.appendChild(inputNovoProd);
+  
+      divProdutos.appendChild(btnAddProd);
+  
+
+  
+      li.appendChild(divProdutos);
+  
+      div.appendChild(li);
+  
+    });
+  
+  }
+  
+
+  
+  function adicionarTamanho() {
+  
+    const novo = document.getElementById("novoTamanho").value;
+  
+    const preco = document.getElementById("precoTamanho").value;
+  
+    if(novo && preco) tamanhos.push({label: novo, preco: preco, ativo:true});
+  
+    renderTudo();
+  
+  }
+  
+
+  
+  function adicionarCreme() {
+  
+    const novo = document.getElementById("novoCreme").value;
+  
+    if(novo) cremes.push({label: novo, ativo:true});
+  
+    renderTudo();
+  
+  }
+  
+
+  
+  function adicionarAdicional() {
+  
+    const novo = document.getElementById("novoAdicional").value;
+  
+    if(novo) adicionais.push({label: novo, ativo:true});
+  
+    renderTudo();
+  
+  }
+  
+
+  
+  function adicionarCobertura() {
+  
+    const novo = document.getElementById("novaCobertura").value;
+  
+    if(novo) coberturas.push({label: novo, ativo:true});
+  
+    renderTudo();
+  
+  }
+  
+
+  
+  function adicionarCategoria() {
+  
+    const nome = document.getElementById("novaCategoria").value;
+  
+    const limite = parseInt(document.getElementById("limiteCategoria").value)||1;
+  
+    if(nome) categorias.push({nome:nome, limite:limite, ativo:true, produtos:[]});
+  
+    renderTudo();
+  
+  }
+  
+
+  
+  function enviarPedido() {
+  
+    const nome = document.getElementById("nome").value;
+  
+    const endereco = document.getElementById("endereco").value;
+  
+    const vitaminaChecked = document.getElementById("vitamina")?.checked;
+  
+
+  
+    let pedido = `🍧 Pedido de Açaí:%0A%0A👤 Nome: ${nome}%0A📍 Endereço: ${endereco}%0A`;
+  
+
+  
+    if (vitaminaChecked) pedido += `%0A🥤 ${vitamina.label}`;
+  
+    if (selecionados.tamanhos.length > 0) pedido += `%0A📏 Tamanho: ${selecionados.tamanhos.join(", ")}`;
+  
+    if (selecionados.cremes.length > 0) pedido += `%0A🍯 Creme: ${selecionados.cremes.join(", ")}`;
+  
+    if (selecionados.adicionais.length > 0) pedido += `%0A➕ Adicionais: ${selecionados.adicionais.join(", ")}`;
+  
+    if (selecionados.coberturas.length > 0) pedido += `%0A🍫 Cobertura: ${selecionados.coberturas.join(", ")}`;
+  
+
+  
+    Object.keys(categoriasSelecionadas).forEach(cat => {
+  
+      if(categoriasSelecionadas[cat].length>0){
+  
+        pedido += `%0A📦 ${cat}: ${categoriasSelecionadas[cat].join(", ")}`;
+  
+      }
+  
+    });
+  
+
+  
+    window.open(`https://wa.me//5585986443767?text=${pedido}`, "_blank");
+  
+  }
+  
+
+  
+  function renderTudo(){ renderCardapio(); renderAdmin(); }
+  
+  renderTudo();
+  
+</script></body></html>
